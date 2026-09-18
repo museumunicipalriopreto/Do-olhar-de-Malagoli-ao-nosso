@@ -106,7 +106,6 @@
         Aponte a câmera para uma das imagens da exposição.
     </div>
 
-    <!-- Desativados os seletores UI automáticos do A-Frame para evitar congelamentos -->
     <a-scene
         mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterMinCF: 0.0001; filterBeta: 0.001;"
         color-space="sRGB"
@@ -120,22 +119,22 @@
             <img id="texto2" src="./texto2.png">
         </a-assets>
 
-        <!-- Definição explícita do ID da câmara -->
         <a-camera id="main-camera" position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- ALVO 1 -->
+        <!-- ALVO 1 (Tamanho aumentado para 3x) -->
         <a-entity mindar-image-target="targetIndex: 0">
-            <a-plane id="plane-texto1" src="#texto1" position="0 0 0" width="2" height="2" material="transparent: true;" look-at="#main-camera"></a-plane>
+            <a-plane id="plane-texto1" src="#texto1" position="0 0 0" width="3" height="3" material="transparent: true;" look-at="#main-camera"></a-plane>
         </a-entity>
 
-        <!-- ALVO 2 -->
+        <!-- ALVO 2 (Tamanho aumentado para 3x) -->
         <a-entity mindar-image-target="targetIndex: 1">
-            <a-plane id="plane-texto2" src="#texto2" position="0 0 0" width="2" height="2" material="transparent: true;" look-at="#main-camera"></a-plane>
+            <a-plane id="plane-texto2" src="#texto2" position="0 0 0" width="3" height="3" material="transparent: true;" look-at="#main-camera"></a-plane>
         </a-entity>
 
     </a-scene>
 
     <script>
+        // Função atualizada para ajustar a proporção mantendo 3x a largura base
         function ajustarProporcao(idImg, idPlane) {
             const img = document.getElementById(idImg);
             const plane = document.getElementById(idPlane);
@@ -143,8 +142,9 @@
             const aplicar = () => {
                 if (img.naturalWidth && img.naturalHeight) {
                     const ratio = img.naturalHeight / img.naturalWidth;
-                    plane.setAttribute('width', 2);
-                    plane.setAttribute('height', ratio * 2);
+                    // Define a largura em 3x e ajusta a altura proporcionalmente
+                    plane.setAttribute('width', 3);
+                    plane.setAttribute('height', ratio * 3);
                 }
             };
 
@@ -169,7 +169,6 @@
             carregando.style.display = "block";
 
             try {
-                // Aguarda o carregamento do motor A-Frame caso não esteja pronto
                 if (!scene.hasLoaded) {
                     await new Promise(resolve => scene.addEventListener('loaded', resolve));
                 }
