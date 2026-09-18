@@ -13,9 +13,6 @@
     <!-- MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <!-- Look-At seguro compatível com A-Frame 1.5.0 -->
-    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-
     <style>
         body {
             margin: 0;
@@ -92,13 +89,13 @@
 
     <div id="inicio">
         <div id="inicio-conteudo">
-            <h1>Exposição Malagoli</h1>
+            <h1>Exposição "Do olhar de Malagoli ao nosso: o Patrimônio de Rio Preto hoje"</h1>
             <p>
                 Aponte a câmera do celular para uma das imagens
                 indicadas na exposição para acessar o conteúdo.
             </p>
             <button id="botao-iniciar">Iniciar experiência</button>
-            <div id="carregando">Carregando câmara e motor 3D...</div>
+            <div id="carregando">Carregando câmera...</div>
         </div>
     </div>
 
@@ -121,20 +118,30 @@
 
         <a-camera id="main-camera" position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- ALVO 1 (Tamanho aumentado para 3x) -->
+        <!-- ALVO 1 (Tamanho 3x) -->
         <a-entity mindar-image-target="targetIndex: 0">
-            <a-plane id="plane-texto1" src="#texto1" position="0 0 0" width="3" height="3" material="transparent: true;" look-at="#main-camera"></a-plane>
+            <a-plane id="plane-texto1" src="#texto1" position="0 0 0" width="3" height="3" material="transparent: true;" olhar-camera></a-plane>
         </a-entity>
 
-        <!-- ALVO 2 (Tamanho aumentado para 3x) -->
+        <!-- ALVO 2 (Tamanho 3x) -->
         <a-entity mindar-image-target="targetIndex: 1">
-            <a-plane id="plane-texto2" src="#texto2" position="0 0 0" width="3" height="3" material="transparent: true;" look-at="#main-camera"></a-plane>
+            <a-plane id="plane-texto2" src="#texto2" position="0 0 0" width="3" height="3" material="transparent: true;" olhar-camera></a-plane>
         </a-entity>
 
     </a-scene>
 
     <script>
-        // Função atualizada para ajustar a proporção mantendo 3x a largura base
+        // Componente leve nativo para alinhar com a câmera sem bibliotecas externas
+        AFRAME.registerComponent('olhar-camera', {
+            tick: function () {
+                const camera = document.getElementById('main-camera');
+                if (camera) {
+                    this.el.object3D.lookAt(camera.object3D.position);
+                }
+            }
+        });
+
+        // Ajuste proporcional do tamanho (3x)
         function ajustarProporcao(idImg, idPlane) {
             const img = document.getElementById(idImg);
             const plane = document.getElementById(idPlane);
@@ -142,7 +149,6 @@
             const aplicar = () => {
                 if (img.naturalWidth && img.naturalHeight) {
                     const ratio = img.naturalHeight / img.naturalWidth;
-                    // Define a largura em 3x e ajusta a altura proporcionalmente
                     plane.setAttribute('width', 3);
                     plane.setAttribute('height', ratio * 3);
                 }
@@ -158,6 +164,7 @@
         ajustarProporcao('texto1', 'plane-texto1');
         ajustarProporcao('texto2', 'plane-texto2');
 
+        // Controle dos botões
         const botao = document.getElementById("botao-iniciar");
         const inicio = document.getElementById("inicio");
         const carregando = document.getElementById("carregando");
@@ -169,10 +176,6 @@
             carregando.style.display = "block";
 
             try {
-                if (!scene.hasLoaded) {
-                    await new Promise(resolve => scene.addEventListener('loaded', resolve));
-                }
-
                 const mindarSystem = scene.systems["mindar-image-system"];
                 await mindarSystem.start();
 
@@ -184,8 +187,8 @@
                 }, 4000);
 
             } catch (erro) {
-                console.error("Erro de inicialização:", erro);
-                carregando.innerHTML = "Erro ao aceder à câmara. Verifique as permissões do seu navegador.";
+                console.error("Erro ao iniciar câmera:", erro);
+                carregando.innerHTML = "Não foi possível acessar a câmera. Verifique as permissões do navegador.";
             }
         });
     </script>
