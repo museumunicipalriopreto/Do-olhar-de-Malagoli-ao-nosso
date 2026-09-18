@@ -82,6 +82,26 @@
             font-size: 14px;
             display: none;
         }
+
+        /* PAINEL FIXO EM ECRÃ INTEIRO PARA OS TEXTOS */
+        #overlay-texto {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 8;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #overlay-texto img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Mantém a proporção exata ocupando o máximo do ecrã */
+        }
     </style>
 </head>
 
@@ -89,13 +109,13 @@
 
     <div id="inicio">
         <div id="inicio-conteudo">
-            <h1>Exposição "Do olhar de Malagoli ao nosso: o Patrimônio de Rio Preto hoje"</h1>
+            <h1>Exposição Malagoli</h1>
             <p>
                 Aponte a câmera do celular para uma das imagens
                 indicadas na exposição para acessar o conteúdo.
             </p>
             <button id="botao-iniciar">Iniciar experiência</button>
-            <div id="carregando">Carregando câmera...</div>
+            <div id="carregando">Carregando câmara...</div>
         </div>
     </div>
 
@@ -103,68 +123,58 @@
         Aponte a câmera para uma das imagens da exposição.
     </div>
 
+    <!-- EXIBIÇÃO FIXA EM ECRÃ INTEIRO (2D) -->
+    <div id="overlay-texto">
+        <img id="imagem-exibida" src="" alt="Texto da Exposição">
+    </div>
+
+    <!-- CENA AR (APENAS PARA RASTREAMENTO) -->
     <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterMinCF: 0.0001; filterBeta: 0.001;"
+        mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
         color-space="sRGB"
         renderer="colorManagement: true, physicallyCorrectLights"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
 
-        <a-assets>
-            <img id="texto1" src="./texto1.png">
-            <img id="texto2" src="./texto2.png">
-        </a-assets>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <a-camera id="main-camera" position="0 0 0" look-controls="enabled: false"></a-camera>
+        <!-- ALVO 1 -->
+        <a-entity id="target1" mindar-image-target="targetIndex: 0"></a-entity>
 
-        <!-- ALVO 1 (Tamanho 3x) -->
-        <a-entity mindar-image-target="targetIndex: 0">
-            <a-plane id="plane-texto1" src="#texto1" position="0 0 0" width="3" height="3" material="transparent: true;" olhar-camera></a-plane>
-        </a-entity>
-
-        <!-- ALVO 2 (Tamanho 3x) -->
-        <a-entity mindar-image-target="targetIndex: 1">
-            <a-plane id="plane-texto2" src="#texto2" position="0 0 0" width="3" height="3" material="transparent: true;" olhar-camera></a-plane>
-        </a-entity>
+        <!-- ALVO 2 -->
+        <a-entity id="target2" mindar-image-target="targetIndex: 1"></a-entity>
 
     </a-scene>
 
     <script>
-        // Componente leve nativo para alinhar com a câmera sem bibliotecas externas
-        AFRAME.registerComponent('olhar-camera', {
-            tick: function () {
-                const camera = document.getElementById('main-camera');
-                if (camera) {
-                    this.el.object3D.lookAt(camera.object3D.position);
-                }
-            }
+        const overlay = document.getElementById("overlay-texto");
+        const imagemExibida = document.getElementById("imagem-exibida");
+
+        const target1 = document.getElementById("target1");
+        const target2 = document.getElementById("target2");
+
+        // Quando encontra o Alvo 1
+        target1.addEventListener("targetFound", () => {
+            imagemExibida.src = "./texto1.png";
+            overlay.style.display = "flex";
         });
 
-        // Ajuste proporcional do tamanho (3x)
-        function ajustarProporcao(idImg, idPlane) {
-            const img = document.getElementById(idImg);
-            const plane = document.getElementById(idPlane);
+        target1.addEventListener("targetLost", () => {
+            overlay.style.display = "none";
+        });
 
-            const aplicar = () => {
-                if (img.naturalWidth && img.naturalHeight) {
-                    const ratio = img.naturalHeight / img.naturalWidth;
-                    plane.setAttribute('width', 3);
-                    plane.setAttribute('height', ratio * 3);
-                }
-            };
+        // Quando encontra o Alvo 2
+        target2.addEventListener("targetFound", () => {
+            imagemExibida.src = "./texto2.png";
+            overlay.style.display = "flex";
+        });
 
-            if (img.complete) {
-                aplicar();
-            } else {
-                img.addEventListener('load', aplicar);
-            }
-        }
+        target2.addEventListener("targetLost", () => {
+            overlay.style.display = "none";
+        });
 
-        ajustarProporcao('texto1', 'plane-texto1');
-        ajustarProporcao('texto2', 'plane-texto2');
-
-        // Controle dos botões
+        // Controle da interface de início
         const botao = document.getElementById("botao-iniciar");
         const inicio = document.getElementById("inicio");
         const carregando = document.getElementById("carregando");
@@ -187,8 +197,8 @@
                 }, 4000);
 
             } catch (erro) {
-                console.error("Erro ao iniciar câmera:", erro);
-                carregando.innerHTML = "Não foi possível acessar a câmera. Verifique as permissões do navegador.";
+                console.error("Erro ao iniciar a câmara:", erro);
+                carregando.innerHTML = "Não foi possível acessar a câmara. Verifique as permissões do navegador.";
             }
         });
     </script>
