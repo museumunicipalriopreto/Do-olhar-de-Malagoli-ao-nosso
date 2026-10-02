@@ -102,6 +102,33 @@
             max-height: 100%;
             object-fit: contain; /* Mantém a proporção exata ocupando o máximo do ecrã */
         }
+
+        /* BOTÃO PARA FECHAR A IMAGEM */
+        #botao-fechar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 9;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        #botao-fechar:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
     </style>
 </head>
 
@@ -125,6 +152,7 @@
 
     <!-- EXIBIÇÃO FIXA EM ECRÃ INTEIRO (2D) -->
     <div id="overlay-texto">
+        <button id="botao-fechar" aria-label="Fechar">×</button>
         <img id="imagem-exibida" src="" alt="Texto da Exposição">
     </div>
 
@@ -150,28 +178,27 @@
     <script>
         const overlay = document.getElementById("overlay-texto");
         const imagemExibida = document.getElementById("imagem-exibida");
+        const botaoFechar = document.getElementById("botao-fechar");
 
         const target1 = document.getElementById("target1");
         const target2 = document.getElementById("target2");
 
-        // Quando encontra o Alvo 1
+        // Quando encontra o Alvo 1, abre e fixa a imagem 1
         target1.addEventListener("targetFound", () => {
             imagemExibida.src = "./texto1.png";
             overlay.style.display = "flex";
         });
 
-        target1.addEventListener("targetLost", () => {
-            overlay.style.display = "none";
-        });
-
-        // Quando encontra o Alvo 2
+        // Quando encontra o Alvo 2, abre e fixa a imagem 2
         target2.addEventListener("targetFound", () => {
             imagemExibida.src = "./texto2.png";
             overlay.style.display = "flex";
         });
 
-        target2.addEventListener("targetLost", () => {
+        // Fechar overlay ao clicar no botão X
+        botaoFechar.addEventListener("click", () => {
             overlay.style.display = "none";
+            imagemExibida.src = "";
         });
 
         // Controle da interface de início
