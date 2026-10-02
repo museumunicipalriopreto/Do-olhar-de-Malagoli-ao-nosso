@@ -1,234 +1,62 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+// Lista de textos disponíveis na exposição
+const listaTextos = ["./texto1.png", "./texto2.png"];
+let indiceAtual = 0;
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+// Elementos da interface
+const overlay = document.getElementById("overlay-texto");
+const imagemExibida = document.getElementById("imagem-exibida");
+const btnFechar = document.getElementById("btn-fechar");
+const btnAnterior = document.getElementById("btn-anterior");
+const btnProximo = document.getElementById("btn-proximo");
+const indicador = document.getElementById("indicador-pagina");
 
-    <title>Realidade Aumentada - Exposição</title>
-
-    <!-- A-Frame -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- MindAR -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: #000;
+// Função para atualizar a imagem e o indicador de página
+function atualizarImagem(novoIndice) {
+    indiceAtual = novoIndice;
+    imagemExibida.style.opacity = "0.3";
+    setTimeout(() => {
+        imagemExibida.src = listaTextos[indiceAtual];
+        if (indicador) {
+            indicador.textContent = `\({indiceAtual + 1} /\){listaTextos.length}`;
         }
+        imagemExibida.style.opacity = "1";
+    }, 100);
+}
 
-        #inicio {
-            position: fixed;
-            z-index: 10;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
+// Ao carregar a página pelo QR Code
+window.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetParam = urlParams.get('target');
 
-        #inicio-conteudo {
-            width: 85%;
-            max-width: 500px;
-            color: white;
-        }
+    // Se o QR Code tiver ?target=2 abre o segundo texto, caso contrário abre o primeiro
+    if (targetParam === '2') {
+        atualizarImagem(1);
+    } else {
+        atualizarImagem(0);
+    }
 
-        #inicio h1 {
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
+    // Exibe o painel imediatamente ao aceder
+    overlay.style.display = "flex";
+});
 
-        #inicio p {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
+// Eventos dos botões de navegação lateral
+if (btnProximo) {
+    btnProximo.addEventListener("click", () => {
+        const proximoIndice = (indiceAtual + 1) % listaTextos.length;
+        atualizarImagem(proximoIndice);
+    });
+}
 
-        #botao-iniciar {
-            border: none;
-            padding: 15px 28px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: #fff;
-            color: #000;
-            font-weight: bold;
-        }
+if (btnAnterior) {
+    btnAnterior.addEventListener("click", () => {
+        const anteriorIndice = (indiceAtual - 1 + listaTextos.length) % listaTextos.length;
+        atualizarImagem(anteriorIndice);
+    });
+}
 
-        #carregando {
-            display: none;
-            color: white;
-            font-size: 18px;
-        }
-
-        #mensagem {
-            position: fixed;
-            z-index: 5;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            display: none;
-        }
-
-        /* PAINEL FIXO EM ECRÃ INTEIRO PARA OS TEXTOS */
-        #overlay-texto {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 8;
-            display: none;
-            background-color: rgba(0, 0, 0, 0.85);
-            justify-content: center;
-            align-items: center;
-        }
-
-        #overlay-texto img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Mantém a proporção exata ocupando o máximo do ecrã */
-        }
-
-        /* BOTÃO PARA FECHAR A IMAGEM */
-        #botao-fechar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 9;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-        }
-
-        #botao-fechar:active {
-            background: rgba(255, 255, 255, 0.4);
-        }
-    </style>
-</head>
-
-<body>
-
-    <div id="inicio">
-        <div id="inicio-conteudo">
-            <h1>Exposição "Do olhar de Malagoli ao nosso: o Patrimônio de Rio Preto hoje"</h1>
-            <p>
-                Aponte a câmera do celular para uma das imagens
-                indicadas na exposição para acessar o conteúdo.
-            </p>
-            <button id="botao-iniciar">Iniciar experiência</button>
-            <div id="carregando">Carregando câmara...</div>
-        </div>
-    </div>
-
-    <div id="mensagem">
-        Aponte a câmera para uma das imagens da exposição.
-    </div>
-
-    <!-- EXIBIÇÃO FIXA EM ECRÃ INTEIRO (2D) -->
-    <div id="overlay-texto">
-        <button id="botao-fechar" aria-label="Fechar">×</button>
-        <img id="imagem-exibida" src="" alt="Texto da Exposição">
-    </div>
-
-    <!-- CENA AR (APENAS PARA RASTREAMENTO) -->
-    <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
-        color-space="sRGB"
-        renderer="colorManagement: true, physicallyCorrectLights"
-        vr-mode-ui="enabled: false"
-        device-orientation-permission-ui="enabled: false"
-        loading-screen="enabled: false">
-
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-        <!-- ALVO 1 -->
-        <a-entity id="target1" mindar-image-target="targetIndex: 0"></a-entity>
-
-        <!-- ALVO 2 -->
-        <a-entity id="target2" mindar-image-target="targetIndex: 1"></a-entity>
-
-    </a-scene>
-
-    <script>
-        const overlay = document.getElementById("overlay-texto");
-        const imagemExibida = document.getElementById("imagem-exibida");
-        const botaoFechar = document.getElementById("botao-fechar");
-
-        const target1 = document.getElementById("target1");
-        const target2 = document.getElementById("target2");
-
-        // Quando encontra o Alvo 1, abre e fixa a imagem 1
-        target1.addEventListener("targetFound", () => {
-            imagemExibida.src = "./texto1.png";
-            overlay.style.display = "flex";
-        });
-
-        // Quando encontra o Alvo 2, abre e fixa a imagem 2
-        target2.addEventListener("targetFound", () => {
-            imagemExibida.src = "./texto2.png";
-            overlay.style.display = "flex";
-        });
-
-        // Fechar overlay ao clicar no botão X
-        botaoFechar.addEventListener("click", () => {
-            overlay.style.display = "none";
-            imagemExibida.src = "";
-        });
-
-        // Controle da interface de início
-        const botao = document.getElementById("botao-iniciar");
-        const inicio = document.getElementById("inicio");
-        const carregando = document.getElementById("carregando");
-        const mensagem = document.getElementById("mensagem");
-        const scene = document.querySelector("a-scene");
-
-        botao.addEventListener("click", async function () {
-            botao.style.display = "none";
-            carregando.style.display = "block";
-
-            try {
-                const mindarSystem = scene.systems["mindar-image-system"];
-                await mindarSystem.start();
-
-                inicio.style.display = "none";
-                mensagem.style.display = "block";
-
-                setTimeout(() => {
-                    mensagem.style.display = "none";
-                }, 4000);
-
-            } catch (erro) {
-                console.error("Erro ao iniciar a câmara:", erro);
-                carregando.innerHTML = "Não foi possível acessar a câmara. Verifique as permissões do navegador.";
-            }
-        });
-    </script>
-</body>
-
-</html>
+// Evento do botão de fechar (X)
+if (btnFechar) {
+    btnFechar.addEventListener("click", () => {
+        overlay.style.display = "none";
+    });
+}
