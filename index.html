@@ -1,62 +1,328 @@
-// Lista de textos disponíveis na exposição
-const listaTextos = ["./texto1.png", "./texto2.png"];
-let indiceAtual = 0;
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-// Elementos da interface
-const overlay = document.getElementById("overlay-texto");
-const imagemExibida = document.getElementById("imagem-exibida");
-const btnFechar = document.getElementById("btn-fechar");
-const btnAnterior = document.getElementById("btn-anterior");
-const btnProximo = document.getElementById("btn-proximo");
-const indicador = document.getElementById("indicador-pagina");
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-// Função para atualizar a imagem e o indicador de página
-function atualizarImagem(novoIndice) {
-    indiceAtual = novoIndice;
-    imagemExibida.style.opacity = "0.3";
-    setTimeout(() => {
-        imagemExibida.src = listaTextos[indiceAtual];
-        if (indicador) {
-            indicador.textContent = `\({indiceAtual + 1} /\){listaTextos.length}`;
+    <title>Do olhar de Malagoli ao nosso</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
         }
-        imagemExibida.style.opacity = "1";
-    }, 100);
-}
 
-// Ao carregar a página pelo QR Code
-window.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetParam = urlParams.get('target');
+        body {
+            margin: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
 
-    // Se o QR Code tiver ?target=2 abre o segundo texto, caso contrário abre o primeiro
-    if (targetParam === '2') {
-        atualizarImagem(1);
-    } else {
-        atualizarImagem(0);
-    }
+        /* TELA PRINCIPAL */
+        #inicio {
+            position: fixed;
+            inset: 0;
+            background: #111;
+            color: white;
 
-    // Exibe o painel imediatamente ao aceder
-    overlay.style.display = "flex";
-});
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
 
-// Eventos dos botões de navegação lateral
-if (btnProximo) {
-    btnProximo.addEventListener("click", () => {
-        const proximoIndice = (indiceAtual + 1) % listaTextos.length;
-        atualizarImagem(proximoIndice);
-    });
-}
+            padding: 30px;
+        }
 
-if (btnAnterior) {
-    btnAnterior.addEventListener("click", () => {
-        const anteriorIndice = (indiceAtual - 1 + listaTextos.length) % listaTextos.length;
-        atualizarImagem(anteriorIndice);
-    });
-}
+        #inicio-conteudo {
+            max-width: 500px;
+        }
 
-// Evento do botão de fechar (X)
-if (btnFechar) {
-    btnFechar.addEventListener("click", () => {
-        overlay.style.display = "none";
-    });
-}
+        #inicio h1 {
+            font-size: 24px;
+            line-height: 1.3;
+            margin-bottom: 20px;
+        }
+
+        #inicio p {
+            font-size: 16px;
+            line-height: 1.5;
+            opacity: 0.85;
+        }
+
+        #botao-ver-textos {
+            margin-top: 20px;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            background: white;
+            color: black;
+
+            cursor: pointer;
+        }
+
+        /* VISUALIZADOR */
+        #overlay-texto {
+            position: fixed;
+            inset: 0;
+
+            background: #000;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #imagem-exibida {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* BOTÃO FECHAR */
+        #botao-fechar {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+
+            z-index: 10;
+
+            width: 46px;
+            height: 46px;
+
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.8);
+
+            background: rgba(0,0,0,0.6);
+            color: white;
+
+            font-size: 26px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+        }
+
+        /* SETAS */
+        .navegacao {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+
+            z-index: 10;
+
+            width: 50px;
+            height: 75px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: rgba(0,0,0,0.55);
+            color: white;
+
+            font-size: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+        }
+
+        #anterior {
+            left: 8px;
+        }
+
+        #proximo {
+            right: 8px;
+        }
+
+        .navegacao:disabled {
+            opacity: 0.15;
+            cursor: default;
+        }
+
+        /* INDICADOR 1/2 */
+        #contador {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            z-index: 10;
+
+            background: rgba(0,0,0,0.65);
+            color: white;
+
+            padding: 7px 13px;
+            border-radius: 20px;
+
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TELA QUE APARECE DEPOIS DE FECHAR -->
+    <div id="inicio">
+
+        <div id="inicio-conteudo">
+
+            <h1>
+                Do olhar de Malagoli ao nosso:<br>
+                o Patrimônio de Rio Preto hoje
+            </h1>
+
+            <p>
+                Conteúdo complementar da exposição.
+            </p>
+
+            <button id="botao-ver-textos">
+                Ver textos
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- TEXTOS -->
+    <div id="overlay-texto">
+
+        <button id="botao-fechar"
+                aria-label="Fechar">
+            ×
+        </button>
+
+        <button id="anterior"
+                class="navegacao"
+                aria-label="Texto anterior">
+            ‹
+        </button>
+
+        <img id="imagem-exibida"
+             src="./texto1.png"
+             alt="Texto complementar da exposição">
+
+        <button id="proximo"
+                class="navegacao"
+                aria-label="Próximo texto">
+            ›
+        </button>
+
+        <div id="contador">
+            1 / 2
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const textos = [
+            "./texto1.png",
+            "./texto2.png"
+        ];
+
+        let atual = 0;
+
+        const overlay =
+            document.getElementById("overlay-texto");
+
+        const inicio =
+            document.getElementById("inicio");
+
+        const imagem =
+            document.getElementById("imagem-exibida");
+
+        const anterior =
+            document.getElementById("anterior");
+
+        const proximo =
+            document.getElementById("proximo");
+
+        const fechar =
+            document.getElementById("botao-fechar");
+
+        const verTextos =
+            document.getElementById("botao-ver-textos");
+
+        const contador =
+            document.getElementById("contador");
+
+
+        function mostrarTexto(numero) {
+
+            atual = numero;
+
+            imagem.src = textos[atual];
+
+            contador.textContent =
+                (atual + 1) + " / " + textos.length;
+
+            anterior.disabled =
+                atual === 0;
+
+            proximo.disabled =
+                atual === textos.length - 1;
+        }
+
+
+        /* PRÓXIMO */
+        proximo.addEventListener("click", () => {
+
+            if (atual < textos.length - 1) {
+                mostrarTexto(atual + 1);
+            }
+
+        });
+
+
+        /* ANTERIOR */
+        anterior.addEventListener("click", () => {
+
+            if (atual > 0) {
+                mostrarTexto(atual - 1);
+            }
+
+        });
+
+
+        /* FECHAR */
+        fechar.addEventListener("click", () => {
+
+            overlay.style.display = "none";
+            inicio.style.display = "flex";
+
+        });
+
+
+        /* REABRIR */
+        verTextos.addEventListener("click", () => {
+
+            inicio.style.display = "none";
+            overlay.style.display = "flex";
+
+            mostrarTexto(0);
+
+        });
+
+
+        /* AO ENTRAR NO QR CODE:
+           ABRE DIRETAMENTE O TEXTO 1 */
+
+        mostrarTexto(0);
+
+    </script>
+
+</body>
+
+</html>
